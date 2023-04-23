@@ -2,19 +2,50 @@ package com.example.account.service;
 
 import com.example.account.domain.Account;
 import com.example.account.domain.AccountStatus;
+import com.example.account.repository.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Optional;
 
-@SpringBootTest  // 환경을 테스트용으로 실제와 동일하게 모든 빈을 다 생성을 해서
-// 그 빈들이 우리가 원하는 테스트를 할 수 있게 해줌.
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+
+@ExtendWith(MockitoExtension.class)   // Mockto: DB의 데이터나 의존관계 바뀜 등 상관없이 온전이 맏은 역할만 테스트 함.
 class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고있음.
-    @Autowired  // 주입
-    private AccountService accountService;
+
+    @Mock
+    private AccountRepository accountRepository;
+    // 가짜로 accountRepository을 생성하여 Mockito의 Mock으로 만듦
+
+    @InjectMocks
+    private AccountService accountService;  // accountRepository를 accountService에 인젝트
+
+    @Test
+    @DisplayName("계좌 조회 성공")  // 로 표시됨
+    void testXXX() {
+        //given
+        given(accountRepository.findById(anyLong()))  // 목
+                .willReturn(Optional.of(Account.builder()
+                        .accountStatus(AccountStatus.UNREGISTERED)
+                        .accountNumber("65789")
+                        .build()));
+
+        //when
+        Account account = accountService.getAccount(4555L);
+
+        //then
+        assertEquals("65789", account.getAccountNumber());
+        assertEquals(AccountStatus.UNREGISTERED, account.getAccountStatus());
+    }
 
     @BeforeEach  // 사전에 각각 동작해서 먼저 데이터 저장하기
     void init() {   // 테스트를 하기 전에 동작시키고 테스르를 하고 이것을 동작시키고 다음 테스르를 함.
@@ -24,20 +55,36 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     @Test
     @DisplayName("Test 이름 변경")
     void testGetAccount() {  // Jnit 프레임워크가 실행시킴
-        accountService.createAccount();  // Account 엔티티 하나를 생성하여 저장 함
-        Account account = accountService.getAccount(1L);
+        //given
+        given(accountRepository.findById(anyLong()))  // 목
+                .willReturn(Optional.of(Account.builder()
+                        .accountStatus(AccountStatus.UNREGISTERED)
+                        .accountNumber("65789")
+                        .build()));
 
-        assertEquals("40000", account.getAccountNumber());
-        assertEquals(AccountStatus.IN_USE, account.getAccountStatus());
+        //when
+        Account account = accountService.getAccount(4555L);
+
+        //then
+        assertEquals("65789", account.getAccountNumber());
+        assertEquals(AccountStatus.UNREGISTERED, account.getAccountStatus());
     }
 
     @Test
     void testGetAccount2() {  // Jnit 프레임워크가 실행시킴
-        accountService.createAccount();  // 하나를 저장 함
-        Account account = accountService.getAccount(2L);
+        //given
+        given(accountRepository.findById(anyLong()))  // 목
+                .willReturn(Optional.of(Account.builder()
+                        .accountStatus(AccountStatus.UNREGISTERED)
+                        .accountNumber("65789")
+                        .build()));
 
-        assertEquals("40000", account.getAccountNumber());
-        assertEquals(AccountStatus.IN_USE, account.getAccountStatus());
+        //when
+        Account account = accountService.getAccount(4555L);
+
+        //then
+        assertEquals("65789", account.getAccountNumber());
+        assertEquals(AccountStatus.UNREGISTERED, account.getAccountStatus());
     }
 
 }
