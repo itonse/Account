@@ -1,13 +1,13 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:test
+  datasource:   # 콘솔에 DB이름 넣을 때 편리
+    url: jdbc:h2:mem:test   # DB 이름을 강제로 설정
     username: sa
     password:
     driverClassName: org.h2.Driver
   h2:
     console:
       enabled: true
-  jpa:
+  jpa:  # 초기값을 등록해주기 위해 사용
     defer-datasource-initialization: true
     database-platform: H2
     hibernate:
