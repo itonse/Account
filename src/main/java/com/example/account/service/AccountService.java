@@ -25,6 +25,9 @@ public class AccountService {   // 계좌 서비스
 
     @Transactional
     public Account getAccount(Long id) {  // Account에 id의 데이터 가져오기
+        if (id < 0) {
+            throw new RuntimeException("Minus");
+        }
         return accountRepository.findById(id).get();   // findById로 id의 데이터를 SELECT해서 가져옴.
     }
     // http://localhost:8080/account/1 웹에서 하면 1번 데이터의 내용이 화면에 표시
