@@ -12,11 +12,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest  // 환경을 테스트용으로 실제와 동일하게 모든 빈을 다 생성을 해서
 // 그 빈들이 우리가 원하는 테스트를 할 수 있게 해줌.
-class AccountServiceTest {   //
+class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고있음.
     @Autowired  // 주입
     private AccountService accountService;
 
-    @BeforeEach  // 사전에 각각 동작하기
+    @BeforeEach  // 사전에 각각 동작해서 먼저 데이터 저장하기
     void init() {   // 테스트를 하기 전에 동작시키고 테스르를 하고 이것을 동작시키고 다음 테스르를 함.
         accountService.createAccount();
     }
