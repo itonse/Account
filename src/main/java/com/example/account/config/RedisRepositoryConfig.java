@@ -11,10 +11,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedisRepositoryConfig {  // 레디스를 접근하기 위한 클라이언트
     @Value("${spring.redis.host}")  // 경로에서 호스트값을 가져옴 (127.0.0.1)
-    private String redisHost;  // 레디스 포트 (6379)
+    private String redisHost;
 
     @Value("${spring.redis.port}")
-    private int redisPort;
+    private int redisPort;    // 레디스 포트 (6379)
 
     @Bean  // (로컬에) 레디슨클라이언트를 빈으로 등록
     public RedissonClient redissonClient() {  // 레디스 클라이언트

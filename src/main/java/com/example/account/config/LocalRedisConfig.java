@@ -15,7 +15,7 @@ public class LocalRedisConfig {
     private RedisServer redisServer;    // 레디스 임베디드에 있는 레디스 서버
 
     @PostConstruct  // 빈을 등록하면서 자동으로 레디스를 스타트 시킴
-    public void start() {   // 메소드 이름은 무관
+    public void startRedis() {   // 메소드 이름은 무관
         redisServer = new RedisServer(redisPort);  // 레디스 서버에 레디스 포트를 넣어줌.
         redisServer.start();  // 레디스서버 시작
     }
