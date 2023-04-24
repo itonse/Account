@@ -11,7 +11,7 @@ public class CreateAccount {
     @Setter
     @AllArgsConstructor
     public static class Request {  // 요청 이너클래스 (스태틱)
-        @NotNull(message = " userId is NUll!! ")
+        @NotNull
         @Min(1)  // 1부터 시작
         private Long userId;  // 유저ID
 
