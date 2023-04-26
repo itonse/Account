@@ -27,11 +27,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AccountController.class)   // 이 컨트롤러만 격리시켜서 테스트 (단위테스트)
-class AccountControllerTest {
-    @MockBean  //가짜로 목 등록
+class AccountControllerTest {    // 테스트 컨테이너
+    @MockBean  // 가짜 accountService 를 목 등록
     private AccountService accountService;  // AccountController가 의존하고있는 것들
 
-    @MockBean
+    @MockBean  // 가짜 redisTestService 를 목 등록
     private RedisTestService redisTestService;
     // -- 주입 완료
 
@@ -39,13 +39,14 @@ class AccountControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;   // (변환기) object -> json -> 문자열
+
 
     @Test
-    void successCreateAccount() throws Exception {
+    void successCreateAccount() throws Exception {  // 계좌생성 성공 테스트
         //given
-        given(accountService.createAccount(anyLong(), anyLong()))
-                .willReturn(AccountDto.builder()
+        given(accountService.createAccount(anyLong(), anyLong()))   // 어떤 입력값이 들어오든간에
+                .willReturn(AccountDto.builder()  // createAccount는 해당 AccountDto을 응답할 것이다.
                         .userId(1L)
                         .accountNumber("1234567890")
                         .registeredAt(LocalDateTime.now())
@@ -53,15 +54,15 @@ class AccountControllerTest {
                         .build());
         //when
         //then
-        mockMvc.perform(post("/account")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                        new CreateAccount.Request(3333L, 1111L)
-                )))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.accountNumber").value("1234567890"))
-                .andDo(print());
+        mockMvc.perform(post("/account")   // mockMvc에 post로 /account 라는 곳에 요청을 날리기
+                .contentType(MediaType.APPLICATION_JSON)  // 들어가는 타입은 json
+                .content(objectMapper.writeValueAsString(  // objectMapper를 이용해서 특정값(json)을 문자열로 만들기
+                        new CreateAccount.Request(3333L, 1111L)  // json 생성
+                )))   // Handler로 AccountControoler가 찾아지고, 그 안에 createAccount 메소드가 호출 됨.
+                .andExpect(status().isOk())  // 기대되는 결과: 200 ok
+                .andExpect(jsonPath("$.userId").value(1))   // (기대) 응답 바디에 오는 userId의 값은 1
+                .andExpect(jsonPath("$.accountNumber").value("1234567890")) // (기대) 응답 바디에 오는 계좌번호는 "1234567890"
+                .andDo(print());  // 콘솔창에 요청에 대한 응답 정보 표시됨 (손쉽게 확인 가능)
 
     }
 

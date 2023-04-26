@@ -3,9 +3,11 @@ package com.example.account.service;
 import com.example.account.domain.Account;
 import com.example.account.domain.AccountUser;
 import com.example.account.dto.AccountDto;
+import com.example.account.exception.AccountException;
 import com.example.account.repository.AccountUserRepository;
 import com.example.account.type.AccountStatus;
 import com.example.account.repository.AccountRepository;
+import com.example.account.type.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,40 +31,103 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
 
     @Mock
     private AccountRepository accountRepository;
-    // 가짜로 accountRepository을 생성하여 Mockito의 Mock으로 만듦
+    // 가짜로 accountRepository을 생성하여 Mock으로 만듦
 
     @Mock
     private AccountUserRepository accountUserRepository;
+    // 가짜로 accountUserRepository 를 생성하여 Mock으로 만듦
 
-    @InjectMocks
-    private AccountService accountService;  // accountRepository를 accountService에 인젝트
+    @InjectMocks  // 위 두 개의 Mock이 달려있는 accountService 가 생성이 되어서 들어감
+    private AccountService accountService;  // 위 두 개의 Mock이 달려있는 accountService 가 생성이 되어서 들어감
 
-    @Test
-    void createAccountSuccess() {
+    @Test   // 계좌 생성이 최초가 아닐 경우
+    void createAccountSuccess() {   // findById, findFirstByOrderByIdDesc, save에 대한 Mocking이 모두 되어있어야만 함.
         //given
-        AccountUser user = AccountUser.builder()
+        AccountUser user = AccountUser.builder()  // 사용될 변수 user
                 .id(12L)
                 .name("Pobi").build();
         given(accountUserRepository.findById(anyLong()))
-                .willReturn(Optional.of(user));
+                .willReturn(Optional.of(user)); // 리턴하는 데이터는 Optional 타입의 accountUser가 생성 될 것
         given(accountRepository.findFirstByOrderByIdDesc())
                 .willReturn(Optional.of(Account.builder()
-                                .accountUser(user)
-                                .accountNumber("1000000012").build()));
+                                .accountUser(user)   // 하위에있는 accountUser 담기
+                                .accountNumber("1000000012").build()));  // 현재까지 저장된 가장 마지막 계좌번호는 12
 
-        given(accountRepository.save(any()))
+        given(accountRepository.save(any()))   // 새로 만들어지는 Account는 여기서 응답으로 줌
                 .willReturn(Account.builder()
                         .accountUser(user)
-                        .accountNumber("1000000015").build());
+                        .accountNumber("1000000013").build());  // 위에서 12번을 주었으니 13번으로 저장될 것
         ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
-
+            // accountRepository.save 에 뭘 save 하는지 확인하기
         //when
         AccountDto accountDto = accountService.createAccount(1L, 1000L);
-
+            // 이 accountDto에는 userId, 계좌번호, 계좌생성일, 계좌폐기일 정보가 담김
         //then
         verify(accountRepository, times(1)).save(captor.capture());
+            // accountRepository가 한 번 저장을 할 것이고, 저장을 할 때를 캡쳐해감
         assertEquals(12L, accountDto.getUserId());
-        assertEquals("1000000013", captor.getValue().getAccountNumber());
+        assertEquals("1000000013", captor.getValue().getAccountNumber());  // 원하는 결과값과 위에서 캡쳐해간 값과 비교 (주어진 1000000012 보다 1 큰값이여야 함)
+    }
+
+    @Test   // 계좌 생성이 최초일 경우
+    void createFirstAccountSuccess() {   // findById, findFirstByOrderByIdDesc, save에 대한 Mocking이 모두 되어있어야만 함.
+        //given
+        AccountUser user = AccountUser.builder()  // 사용될 변수 user
+                .id(15L)
+                .name("Pobi").build();
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(user)); // 리턴하는 데이터는 Optional 타입의 accountUser가 생성 될 것
+        given(accountRepository.findFirstByOrderByIdDesc())
+                .willReturn(Optional.empty());  // 이전에 생성된 계좌가 없는 경우
+
+        given(accountRepository.save(any()))   // 새로 만들어지는 Account는 여기서 응답으로 줌
+                .willReturn(Account.builder()
+                        .accountUser(user)
+                        .accountNumber("1000000013").build());
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+        // accountRepository.save 에 뭘 save 하는지 확인하기
+        //when
+        AccountDto accountDto = accountService.createAccount(1L, 1000L);
+        // 이 accountDto에는 userId, 계좌번호, 계좌생성일, 계좌폐기일 정보가 담김
+        //then
+        verify(accountRepository, times(1)).save(captor.capture());
+        // accountRepository가 한 번 저장을 할 것이고, 저장을 할 때를 캡쳐해감
+        assertEquals(15L, accountDto.getUserId());
+        assertEquals("1000000000", captor.getValue().getAccountNumber());  // 원하는 결과값과 위에서 캡쳐해간 값과 비교
+    }
+
+    @Test
+    @DisplayName("해당 유저 없음 - 계좌 생성 실패")
+    void createAccount_UserNotFound() {   // findById, findFirstByOrderByIdDesc, save에 대한 Mocking이 모두 되어있어야만 함.
+        //given
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.empty());   // 찾고자 하는 유저가 없음 (텅빈 optional이 넘어옴)
+
+        //when
+        AccountException exception = assertThrows(AccountException.class,   // 해당 logic은 accountException을 던질 것.
+                () -> accountService.createAccount(1L, 1000L));
+
+        //then
+        assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());   // 그 exception의 에러코드는 USER_NOT_FOUND 일 것.
+    }
+
+    @Test
+    @DisplayName("유저 당 최대 계좌는 10개")
+    void cerateAccount_maxAccountIs10() {
+        //given
+        AccountUser user = AccountUser.builder()  // 사용될 변수 user
+                .id(12L)
+                .name("Pobi").build();
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(user));  // findById로 Account를 정상적으로 찾음
+        given(accountRepository.countByAccountUser(any()))
+                .willReturn(10);   // 응답으로 계좌의 개수=10 을 주었을 때
+        //when
+        AccountException exception = assertThrows(AccountException.class,   // 해당 logic은 accountException을 던질 것.
+                () -> accountService.createAccount(1L, 1000L));
+
+        //then
+        assertEquals(ErrorCode.MAX_ACCOUNT_PER_USER_10, exception.getErrorCode());  // 그 exception의 에러코드는 MAX_ACCOUNT_PER_USER_10 일 것.
     }
 
     @Test
@@ -123,7 +188,7 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     }
 
     @Test
-    void testGetAccount2() {  // Jnit 프레임워크가 실행시킴
+    void testGetAccount2() {  // Junit 프레임워크가 실행시킴
         //given
         given(accountRepository.findById(anyLong()))  // 목
                 .willReturn(Optional.of(Account.builder()

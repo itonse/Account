@@ -33,6 +33,8 @@ public class AccountService {   // 계좌 서비스
         AccountUser accountUser = accountUserRepository.findById(userId)  // 조회를 했을때 나오는 타입: Opional
                 .orElseThrow(() -> new AccountException(ErrorCode.USER_NOT_FOUND));  // accountUser가 없으면 예외로 던져짐, 있으면 accountUser에 저장
 
+        validateCreateAccount(accountUser);  // 예외처리 메소드
+
         String newAccountNumber = accountRepository.findFirstByOrderByIdDesc()  // 제일 마지막에 생성된 계좌를 가져옴
                 .map(account -> (Integer.parseInt(account.getAccountNumber())) + 1 + "")
                     // 존재한다면 AccountNumber를 받아서 이것보다 하나 더 큰 숫자 넣어줌 (문자->숫자->문자 변환)
@@ -47,6 +49,12 @@ public class AccountService {   // 계좌 서비스
                         .registeredAt(LocalDateTime.now())
                         .build())
         );
+    }
+
+    private void validateCreateAccount(AccountUser accountUser) {
+        if (accountRepository.countByAccountUser(accountUser) >= 10) {  // 이 사람이 소유하고있는 계좌의 개수가 이미 10개 (이상)이면,
+            throw new AccountException(ErrorCode.MAX_ACCOUNT_PER_USER_10);  // 이 예외를 발생시킴
+        }
     }
 
 

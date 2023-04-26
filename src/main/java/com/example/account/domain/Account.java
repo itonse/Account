@@ -22,7 +22,7 @@ public class Account {   // Account 테이블 구조
     private Long id;   // Account 테이블에 id란 이름으로 PrimaryKey 지정
 
     @ManyToOne
-    private AccountUser accountUser;
+    private AccountUser accountUser;   // Account 안에는 하위로 AccountUser가 있음 (AccountUser 한 명이 N개의 Account 가질수 있음
     private String accountNumber;
 
     @Enumerated(EnumType.STRING)  // enum이 0,1,2.. 순차적인 아닌 스트링으로 DB 테이블에 저장
