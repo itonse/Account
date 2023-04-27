@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import static com.example.account.type.AccountStatus.IN_USE;
 
@@ -30,8 +31,8 @@ public class AccountService {   // 계좌 서비스
      */
     @Transactional
     public AccountDto createAccount(Long userId, Long initialBalance) {   // 계좌 생성
-        AccountUser accountUser = accountUserRepository.findById(userId)  // 조회를 했을때 나오는 타입: Opional
-                .orElseThrow(() -> new AccountException(ErrorCode.USER_NOT_FOUND));  // accountUser가 없으면 예외로 던져짐, 있으면 accountUser에 저장
+        AccountUser accountUser = accountUserRepository.findById(userId)  // userId로 findById 해서 없으면 USER_NOT_FOUND 던짐, 있으면 accountUser에 저장
+                .orElseThrow(() -> new AccountException(ErrorCode.USER_NOT_FOUND));
 
         validateCreateAccount(accountUser);  // 예외처리 메소드
 
@@ -64,5 +65,35 @@ public class AccountService {   // 계좌 서비스
             throw new RuntimeException("Minus");
         }
         return accountRepository.findById(id).get();   // findById로 id의 데이터를 SELECT해서 가져옴.
+    }
+
+    @Transactional
+    public AccountDto deleteAccount(Long userId, String accountNumber) {
+        AccountUser accountUser = accountUserRepository.findById(userId)  // AccountUser 찾기
+                .orElseThrow(() -> new AccountException(ErrorCode.USER_NOT_FOUND));   // userId로 findById 해서 없으면 USER_NOT_FOUND 던짐, 있으면 accountUser 에 저장
+        Account account = accountRepository.findByAccountNumber(accountNumber)  // Account 찾기
+                .orElseThrow(() -> new AccountException(ErrorCode.ACCOUNT_NOT_FOUND));   // accountNumber로 findByAccountNumber 해서 없으면 ACCOUNT_NOT_FOUND 던짐, 있으면 account 에 저장
+
+        validateDeleteAccount(accountUser, account);  // 계좌해지 예외 검사하기 (3가지)
+
+        account.setAccountStatus(AccountStatus.UNREGISTERED);   // 계좌상태를 해지상태로 업데이트
+        account.setUnRegisteredAt(LocalDateTime.now());   // 해지한 시간을 현재 시간으로 업데이트
+
+        accountRepository.save(account);   // (불필요한 코드지만) account를 일부로 호출 해서 이 account에 UNREGISTERED 상태값이 들어왔는지 확인하기
+
+        return AccountDto.fromEntity(account);   // AccountDto 를 account 로부터 만들어서 응답을 줌.
+    }
+
+    private void validateDeleteAccount(AccountUser accountUser, Account account) {   // 계좌해지 예외 검사
+        if (!Objects.equals(accountUser.getId(), account.getAccountUser().getId())) {   // 사용자ID와 계좌 소유주가 다른 경우
+            throw new AccountException(ErrorCode.USER_ACCOUNT_UN_MATCH);  // USER_ACCOUNT_UN_MATCH 에러코드 던짐
+        }
+        if (account.getAccountStatus() == AccountStatus.UNREGISTERED) {   // 이미 계좌가 해지 상태인 경우
+            throw new AccountException(ErrorCode.ACCOUNT_ALREADY_UNREGISTERED);  // 해당 에러코드 던짐
+
+        }
+        if (account.getBalance() > 0) {     // 계좌 잔액이 있는 경우
+            throw new AccountException(ErrorCode.BALANCE_NOT_EMPTY);  // 해당 에러코드 던짐
+        }
     }
 }

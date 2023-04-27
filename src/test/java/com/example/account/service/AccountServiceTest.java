@@ -20,8 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,7 +46,7 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
                 .id(12L)
                 .name("Pobi").build();
         given(accountUserRepository.findById(anyLong()))
-                .willReturn(Optional.of(user)); // 리턴하는 데이터는 Optional 타입의 accountUser가 생성 될 것
+                .willReturn(Optional.of(user));
         given(accountRepository.findFirstByOrderByIdDesc())
                 .willReturn(Optional.of(Account.builder()
                                 .accountUser(user)   // 하위에있는 accountUser 담기
@@ -56,7 +55,7 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
         given(accountRepository.save(any()))   // 새로 만들어지는 Account는 여기서 응답으로 줌
                 .willReturn(Account.builder()
                         .accountUser(user)
-                        .accountNumber("1000000013").build());  // 위에서 12번을 주었으니 13번으로 저장될 것
+                        .accountNumber("1000000013").build());  // 위에서 1000000012 을 주었으니 1000000013 으로 저장될 것
         ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
             // accountRepository.save 에 뭘 save 하는지 확인하기
         //when
@@ -70,13 +69,13 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     }
 
     @Test   // 계좌 생성이 최초일 경우
-    void createFirstAccountSuccess() {   // findById, findFirstByOrderByIdDesc, save에 대한 Mocking이 모두 되어있어야만 함.
+    void createFirstAccountSuccess() {
         //given
         AccountUser user = AccountUser.builder()  // 사용될 변수 user
                 .id(15L)
                 .name("Pobi").build();
         given(accountUserRepository.findById(anyLong()))
-                .willReturn(Optional.of(user)); // 리턴하는 데이터는 Optional 타입의 accountUser가 생성 될 것
+                .willReturn(Optional.of(user));
         given(accountRepository.findFirstByOrderByIdDesc())
                 .willReturn(Optional.empty());  // 이전에 생성된 계좌가 없는 경우
 
@@ -98,7 +97,7 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
 
     @Test
     @DisplayName("해당 유저 없음 - 계좌 생성 실패")
-    void createAccount_UserNotFound() {   // findById, findFirstByOrderByIdDesc, save에 대한 Mocking이 모두 되어있어야만 함.
+    void createAccount_UserNotFound() {
         //given
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.empty());   // 찾고자 하는 유저가 없음 (텅빈 optional이 넘어옴)
@@ -113,7 +112,7 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
 
     @Test
     @DisplayName("유저 당 최대 계좌는 10개")
-    void cerateAccount_maxAccountIs10() {
+    void createAccount_maxAccountIs10() {
         //given
         AccountUser user = AccountUser.builder()  // 사용될 변수 user
                 .id(12L)
@@ -131,78 +130,136 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     }
 
     @Test
-    @DisplayName("계좌 조회 성공")  // 로 표시됨
-    void testXXX() {
+    void deleteAccountSuccess() {
         //given
-        given(accountRepository.findById(anyLong()))  // 목
+        AccountUser user = AccountUser.builder()  // 사용될 변수 user
+                .id(12L)
+                .name("Pobi").build();
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(user)); // 위에서 만든 Pobi를 가져옴
+        given(accountRepository.findByAccountNumber(anyString()))   // 아무 문자열이나 왔을 때
                 .willReturn(Optional.of(Account.builder()
-                        .accountStatus(AccountStatus.UNREGISTERED)
-                        .accountNumber("65789")
-                        .build()));
-
-        ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);  // Long타입의 박스 생성
+                        .accountUser(user)    // 위의 user와 같은 user여야 함
+                        .balance(0L)   // getBalance를 할 때 Null이라서 가져오는 것 자체가 안되므로, 0으로 mocking 하기
+                        .accountNumber("1000000012").build()));  // 1000000012 계좌 해지하기
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
 
         //when
-        Account account = accountService.getAccount(4555L);
+        AccountDto accountDto = accountService.deleteAccount(1L, "1234567890");
 
         //then
-         // 서비스를 테스트하는 다양한 방법들 (verify, assert 등)
-        verify(accountRepository, times(1)).findById(captor.capture()); // 캡처가 값을 가로챔
-         // accountRepository가 findById를 1회 들렸는지 검증
-        assertEquals(4555L, captor.getValue()); // 캡처 값 검증
-        assertNotEquals(6555L, captor.getValue()); // 캡처 값 검증
-        verify(accountRepository, times(0)).save(any());
-         // accountRepository가 save(any() 를 한 번도 호출 안했는지 검증
-        assertEquals("65789", account.getAccountNumber());
-        assertEquals(AccountStatus.UNREGISTERED, account.getAccountStatus());
+        verify(accountRepository, times(1)).save(captor.capture());
+        assertEquals(12L, accountDto.getUserId());
+        assertEquals("1000000012", captor.getValue().getAccountNumber());  // 해지된 계좌는 1000000012 인지
+        assertEquals(AccountStatus.UNREGISTERED, captor.getValue().getAccountStatus());   // 그 계좌의 상태가 UNREGISTERED 인지
     }
 
     @Test
-    @DisplayName("계좌 조회 실패 - 음수로 조회")  // 로 표시됨
-    void testFailedToSearchAccount() {
+    @DisplayName("해당 유저 없음 - 계좌 해지 실패")
+    void deleteAccount_UserNotFound() {
         //given
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.empty());
+
         //when
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> // () ->: 런타임 익셉션이 터지는 동작은
-                accountService.getAccount(-10L));// 이 동작이다.
+        AccountException exception = assertThrows(AccountException.class,
+                () -> accountService.deleteAccount(1L, "1234567890"));
 
         //then
-        assertEquals("Minus", exception.getMessage());
+        assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
-    @DisplayName("Test 이름 변경")
-    void testGetAccount() {  // Jnit 프레임워크가 실행시킴
+    @DisplayName("해당 계좌 없음 - 계좌 해지 실패")
+    void deleteAccount_AccountNotFound() {
         //given
-        given(accountRepository.findById(anyLong()))  // 목
-                .willReturn(Optional.of(Account.builder()
-                        .accountStatus(AccountStatus.UNREGISTERED)
-                        .accountNumber("65789")
-                        .build()));
+        AccountUser user = AccountUser.builder()
+                .id(12L)
+                .name("Pobi").build();
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(user));
+        given(accountRepository.findByAccountNumber(anyString()))
+                .willReturn(Optional.empty());
 
         //when
-        Account account = accountService.getAccount(4555L);
+        AccountException exception = assertThrows(AccountException.class,
+                () -> accountService.deleteAccount(1L, "1234567890"));
 
         //then
-        assertEquals("65789", account.getAccountNumber());
-        assertEquals(AccountStatus.UNREGISTERED, account.getAccountStatus());
+        assertEquals(ErrorCode.ACCOUNT_NOT_FOUND, exception.getErrorCode());   // 그 계좌의 상태가 UNREGISTERED 인지
     }
 
     @Test
-    void testGetAccount2() {  // Junit 프레임워크가 실행시킴
+    @DisplayName("계좌 소유주 다름")
+    void deleteAccountFailed_userUnMatch() {
         //given
-        given(accountRepository.findById(anyLong()))  // 목
+        AccountUser pobi = AccountUser.builder()  // 삭제하고싶은 계좌의 소유주
+                .id(12L)
+                .name("Pobi").build();
+        AccountUser harry = AccountUser.builder()  // 다른 계좌 소유주
+                .id(13L)
+                .name("Harry").build();
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(pobi)); // pobi
+        given(accountRepository.findByAccountNumber(anyString()))
                 .willReturn(Optional.of(Account.builder()
-                        .accountStatus(AccountStatus.UNREGISTERED)
-                        .accountNumber("65789")
-                        .build()));
+                        .accountUser(harry)    // pobi가 아닌 harry
+                        .balance(0L)   // getBalance를 할 때 Null이라서 가져오는 것 자체가 안되므로, 0으로 mocking 하기
+                        .accountNumber("1000000012").build()));
 
         //when
-        Account account = accountService.getAccount(4555L);
+        AccountException exception = assertThrows(AccountException.class,
+                () -> accountService.deleteAccount(1L, "1234567890"));
 
         //then
-        assertEquals("65789", account.getAccountNumber());
-        assertEquals(AccountStatus.UNREGISTERED, account.getAccountStatus());
+        assertEquals(ErrorCode.USER_ACCOUNT_UN_MATCH, exception.getErrorCode());  // 에러: 계좌의 소유주 불일치
     }
 
+    @Test
+    @DisplayName("해지 계좌는 잔액이 없어야 한다.")
+    void deleteAccountFailed_balanceNotEmpty() {
+        //given
+        AccountUser pobi = AccountUser.builder()
+                .id(12L)
+                .name("Pobi").build();  // Pobi가 검색되고,
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(pobi));
+        given(accountRepository.findByAccountNumber(anyString()))
+                .willReturn(Optional.of(Account.builder()
+                        .accountUser(pobi)  // pobi가 소유주가 맞는데,
+                        .balance(100L)   // 잔액이 100원이 남아있다
+                        .accountNumber("1000000012").build()));
+
+        //when
+        AccountException exception = assertThrows(AccountException.class,
+                () -> accountService.deleteAccount(1L, "1234567890"));
+
+        //then
+        assertEquals(ErrorCode.BALANCE_NOT_EMPTY, exception.getErrorCode());  // 잔액 있음 오류
+    }
+
+    @Test
+    @DisplayName("해지 계좌는 해지할 수 없다.")
+    void deleteAccountFailed_alreadyUnregistered() {
+        //given
+        AccountUser pobi = AccountUser.builder()
+                .id(12L)
+                .name("Pobi").build();  // Pobi가 검색되고,
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(pobi));
+        given(accountRepository.findByAccountNumber(anyString()))
+                .willReturn(Optional.of(Account.builder()
+                        .accountUser(pobi)  // pobi가 소유주가 맞고,
+                        .balance(0L)   //  잔액도 0원인데,
+                        .accountStatus(AccountStatus.UNREGISTERED)  // 이미 계좌가 해지된 상태라면
+                        .accountNumber("1000000012").build()));
+
+        //when
+        AccountException exception = assertThrows(AccountException.class,
+                () -> accountService.deleteAccount(1L, "1234567890"));
+
+        //then
+        assertEquals(ErrorCode.ACCOUNT_ALREADY_UNREGISTERED, exception.getErrorCode());  //  오류: 이미 해지된 계좌입니다
+    }
 }
 

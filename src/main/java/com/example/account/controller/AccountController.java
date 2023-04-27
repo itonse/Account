@@ -2,6 +2,7 @@ package com.example.account.controller;
 
 import com.example.account.domain.Account;
 import com.example.account.dto.CreateAccount;
+import com.example.account.dto.DeleteAccount;
 import com.example.account.service.AccountService;
 import com.example.account.service.RedisTestService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,18 @@ public class AccountController {   // controller에 호출을 시킬 수 있는 
                 accountService.createAccount(   // 받아온 AccountDto를 CreateAccount.Response로 변환해서 응답 생성
                         request.getUserId(),
                         request.getInitialBalance()
+                )
+        );
+    }
+
+    @DeleteMapping("/account")
+    public DeleteAccount.Response deleteAccount(  // 응답을 받음
+            @RequestBody @Valid DeleteAccount.Request request
+    ) {
+        return DeleteAccount.Response.from(   //
+                accountService.deleteAccount(   // 받아온 AccountDto를 DeleteAccount.Response로 변환해서 응답 생성
+                        request.getUserId(),
+                        request.getAccountNumber()
                 )
         );
     }
