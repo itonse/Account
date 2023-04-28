@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountController {   // controller에 호출을 시킬 수 있는 end-Point 생성
     private final AccountService accountService;  // 의존성 주입 받음
-    // 접속순서: 외부->AccountController->(AccountDto)->AccountService->AccountRepository (의존관계, 순차적, 계층화)
+    // 접속순서: 외부->AccountController->(AccountDto)->AccountService->AccountRepository->Acount(의존관계, 순차적, 계층화)
     private final RedisTestService redisTestService;
 
     @PostMapping("/account")

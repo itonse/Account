@@ -202,10 +202,10 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
                 .id(13L)
                 .name("Harry").build();
         given(accountUserRepository.findById(anyLong()))
-                .willReturn(Optional.of(pobi)); // pobi
+                .willReturn(Optional.of(pobi)); // user를 조회할 때는 pobi
         given(accountRepository.findByAccountNumber(anyString()))
                 .willReturn(Optional.of(Account.builder()
-                        .accountUser(harry)    // pobi가 아닌 harry
+                        .accountUser(harry)    // account를 조회할 때는 pobi가 아닌 harry (포비가 해리의 계좌 무단 사용 시도)
                         .balance(0L)   // getBalance를 할 때 Null이라서 가져오는 것 자체가 안되므로, 0으로 mocking 하기
                         .accountNumber("1000000012").build()));
 
