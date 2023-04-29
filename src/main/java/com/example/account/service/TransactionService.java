@@ -132,4 +132,11 @@ public class TransactionService {
 
         saveAndGetTransaction(CANCEL, F, account, amount);    // 실패건 저장
     }
+
+    public TransactionDto queryTransaction(String transactionId) {
+        return TransactionDto.fromEntity(
+                transactionRepository.findByTransactionId(transactionId)
+                .orElseThrow(() -> new AccountException(ErrorCode.TRANSACTION_NOT_FOUND))
+        );
+    }
 }

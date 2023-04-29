@@ -1,15 +1,14 @@
 package com.example.account.controller;
 
 import com.example.account.dto.CancelBalance;
+import com.example.account.dto.QueryTransactionResponse;
 import com.example.account.dto.TransactionDto;
 import com.example.account.dto.UseBalance;
 import com.example.account.exception.AccountException;
 import com.example.account.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -27,8 +26,8 @@ public class TransactionController {
 
     @PostMapping("/transaction/use")
     public UseBalance.Response useBalance(   // 응답 반환
-            @Valid @RequestBody UseBalance.Request request  // 요청 필요
-    ){
+                                             @Valid @RequestBody UseBalance.Request request  // 요청 필요
+    ) {
 
         try {
             return UseBalance.Response.from(  // UseBalance 처리 후, 응답을 반환
@@ -49,8 +48,8 @@ public class TransactionController {
 
     @PostMapping("/transaction/cancel")
     public CancelBalance.Response cancelBalance(   // 응답 반환
-               @Valid @RequestBody CancelBalance.Request request  // 요청 필요
-    ){
+                                                   @Valid @RequestBody CancelBalance.Request request  // 요청 필요
+    ) {
 
         try {
             return CancelBalance.Response.from(  // UseBalance 처리 후, 응답을 반환
@@ -67,5 +66,13 @@ public class TransactionController {
 
             throw e;   // 에러 부분을 던져주어서 발생한 에러 알려주기
         }
+    }
+
+    @GetMapping("/transaction/{transactionId}")
+    public QueryTransactionResponse queryTransaction(
+            @PathVariable String transactionId) {
+        return QueryTransactionResponse.from(
+                transactionService.queryTransaction(transactionId)
+        );
     }
 }

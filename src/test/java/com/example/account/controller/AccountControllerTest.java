@@ -4,9 +4,11 @@ import com.example.account.domain.Account;
 import com.example.account.dto.AccountDto;
 import com.example.account.dto.CreateAccount;
 import com.example.account.dto.DeleteAccount;
+import com.example.account.exception.AccountException;
 import com.example.account.type.AccountStatus;
 import com.example.account.service.AccountService;
 import com.example.account.service.RedisTestService;
+import com.example.account.type.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -138,8 +140,24 @@ class AccountControllerTest {    // 테스트 컨테이너
         //then  (결과 검증)
         mockMvc.perform(get("/account/876"))  // 컨트롤러 안에있는 URL 호출(스테틱 메소드로 가져옴)
                 .andDo(print())
-                .andExpect(jsonPath("$.accountNumber").value("3456"))  // 바디의 첫번째 구조에 있는 값
+                .andExpect(jsonPath("$.accountNumber").value("3456"))  // 바디로 출력되는 값
                 .andExpect(jsonPath("$.accountStatus").value("IN_USE"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void failGetAccount() throws Exception {   // (위의 테스트와 MockHttpServletResponse의 바디 값 비교해보기)
+        //given
+        given(accountService.getAccount(anyLong()))  // 목킹
+                .willThrow(new AccountException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        //when
+        // 결과가 객체로 나오지 않기 때문에 일반적으로 하는 것(when에서 데이터 받고 then으로 비교)을 할 수 없음.
+        //then  (결과 검증)
+        mockMvc.perform(get("/account/876"))  // 컨트롤러 안에있는 URL 호출(스테틱 메소드로 가져옴)
+                .andDo(print())
+                .andExpect(jsonPath("$.errorCode").value("ACCOUNT_NOT_FOUND"))  // 바디로 출력되는 값 (차이점)
+                .andExpect(jsonPath("$.errorMessage").value("계좌가 없습니다."))  // "
                 .andExpect(status().isOk());
     }
 }

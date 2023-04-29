@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor  // 두개로 생성자를 자동으로 만듦
 public enum ErrorCode {  // 커스텀 에러코드
+    INTERNAL_SERVER_REQUEST("내부 서버 오류가 발생했습니다."),
     INVALID_REQUEST("잘못된 요청입니다."),
     USER_NOT_FOUND("사용자가 없습니다."),
     ACCOUNT_NOT_FOUND("계좌가 없습니다."),
