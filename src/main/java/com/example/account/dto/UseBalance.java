@@ -1,5 +1,6 @@
 package com.example.account.dto;
 
+import com.example.account.aop.AccountLockIdInterface;
 import com.example.account.type.TransactionResultType;
 import lombok.*;
 
@@ -14,10 +15,10 @@ public class UseBalance {
      *  "amount":1000
      * }
      */
-    @Getter
+    @Getter // 롬복으로 자동으로 인터페이스 구현됨.
     @Setter
     @AllArgsConstructor
-    public static class Request {  // 요청 이너클래스 (스태틱)
+    public static class Request implements AccountLockIdInterface {  // 요청 이너클래스 (스태틱)
         @NotNull
         @Min(1)  // 1부터 시작
         private Long userId;  // 유저ID

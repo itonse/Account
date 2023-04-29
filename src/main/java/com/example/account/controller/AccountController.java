@@ -5,7 +5,6 @@ import com.example.account.dto.AccountInfo;
 import com.example.account.dto.CreateAccount;
 import com.example.account.dto.DeleteAccount;
 import com.example.account.service.AccountService;
-import com.example.account.service.RedisTestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +17,6 @@ import java.util.stream.Collectors;
 public class AccountController {   // controller에 호출을 시킬 수 있는 end-Point 생성
     private final AccountService accountService;  // 의존성 주입 받음
     // 접속순서: 외부->AccountController->(AccountDto)->AccountService->AccountRepository->Acount(의존관계, 순차적, 계층화)
-    private final RedisTestService redisTestService;
 
     @PostMapping("/account")
     public CreateAccount.Response createAccount(  // 응답을 받음
@@ -55,11 +53,6 @@ public class AccountController {   // controller에 호출을 시킬 수 있는 
                         .balance(accountDto.getBalance())
                         .build())
                 .collect(Collectors.toList());
-    }
-
-    @GetMapping("/get-lock")  // 엔드포인트
-    public String getLock() {
-        return redisTestService.getLock();
     }
 
     @GetMapping("/account/{id}")

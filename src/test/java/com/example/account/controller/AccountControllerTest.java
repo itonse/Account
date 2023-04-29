@@ -7,9 +7,7 @@ import com.example.account.dto.DeleteAccount;
 import com.example.account.exception.AccountException;
 import com.example.account.type.AccountStatus;
 import com.example.account.service.AccountService;
-import com.example.account.service.RedisTestService;
 import com.example.account.type.ErrorCode;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +34,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AccountControllerTest {    // 테스트 컨테이너
     @MockBean  // 가짜 accountService 를 목 등록
     private AccountService accountService;  // AccountController가 의존하고있는 것들
-
-    @MockBean  // 가짜 redisTestService 를 목 등록
-    private RedisTestService redisTestService;
-    // -- 주입 완료
 
     @Autowired
     private MockMvc mockMvc;

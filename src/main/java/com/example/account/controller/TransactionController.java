@@ -1,5 +1,6 @@
 package com.example.account.controller;
 
+import com.example.account.aop.AccountLock;
 import com.example.account.dto.CancelBalance;
 import com.example.account.dto.QueryTransactionResponse;
 import com.example.account.dto.TransactionDto;
@@ -25,11 +26,13 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping("/transaction/use")
+    @AccountLock   // 동시성 제어 필요
     public UseBalance.Response useBalance(   // 응답 반환
-                                             @Valid @RequestBody UseBalance.Request request  // 요청 필요
-    ) {
+            @Valid @RequestBody UseBalance.Request request  // 요청 필요
+    ) throws InterruptedException {
 
         try {
+            Thread.sleep(3000L);   // 스레드 슬립을 함 (3초) -> 거래 성공 응답을 3초 뒤에 함
             return UseBalance.Response.from(  // UseBalance 처리 후, 응답을 반환
                     transactionService.useBalance(request.getUserId(),
                             request.getAccountNumber(), request.getAmount())
@@ -47,8 +50,9 @@ public class TransactionController {
     }
 
     @PostMapping("/transaction/cancel")
+    @AccountLock   // 동시성 제어 필요
     public CancelBalance.Response cancelBalance(   // 응답 반환
-                                                   @Valid @RequestBody CancelBalance.Request request  // 요청 필요
+            @Valid @RequestBody CancelBalance.Request request  // 요청 필요
     ) {
 
         try {

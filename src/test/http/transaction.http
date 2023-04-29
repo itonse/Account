@@ -3,9 +3,19 @@ POST http://localhost:8080/transaction/use
 Content-Type: application/json
 
 {
-  "userId": 2,
-  "accountNumber": "1000000003",
-  "amount": 8500000
+  "userId": 1,
+  "accountNumber": "1000000002",
+  "amount": 300
+}
+
+### use balance2
+POST http://localhost:8080/transaction/use
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "accountNumber": "1000000002",
+  "amount": 500
 }
 
 ### cancel balance
