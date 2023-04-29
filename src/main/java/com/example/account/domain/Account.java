@@ -46,4 +46,12 @@ public class Account {   // Account 테이블 구조
 
         balance -= amount;
     }
+
+    public void cancelBalance(Long amount) {  // 계좌 잔액 사용 취소
+        if (amount < 0) {
+            throw new AccountException(ErrorCode.INVALID_REQUEST);
+        }
+
+        balance += amount;
+    }
 }
