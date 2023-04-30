@@ -34,8 +34,7 @@ public class AccountService {   // 계좌 서비스
      */
     @Transactional
     public AccountDto createAccount(Long userId, Long initialBalance) {   // 계좌 생성
-        AccountUser accountUser = accountUserRepository.findById(userId)  // userId로 findById 해서 없으면 USER_NOT_FOUND 던짐, 있으면 accountUser에 저장
-                .orElseThrow(() -> new AccountException(USER_NOT_FOUND));
+        AccountUser accountUser = getAccountUser(userId);
 
         validateCreateAccount(accountUser);  // 예외처리 메소드
 
@@ -72,8 +71,7 @@ public class AccountService {   // 계좌 서비스
 
     @Transactional
     public AccountDto deleteAccount(Long userId, String accountNumber) {
-        AccountUser accountUser = accountUserRepository.findById(userId)  // AccountUser 찾기
-                .orElseThrow(() -> new AccountException(USER_NOT_FOUND));   // userId로 findById 해서 없으면 USER_NOT_FOUND 던짐, 있으면 accountUser 에 저장
+        AccountUser accountUser = getAccountUser(userId);
         Account account = accountRepository.findByAccountNumber(accountNumber)  // Account 찾기
                 .orElseThrow(() -> new AccountException(ErrorCode.ACCOUNT_NOT_FOUND));   // accountNumber로 findByAccountNumber 해서 없으면 ACCOUNT_NOT_FOUND 던짐, 있으면 account 에 저장
 
@@ -102,8 +100,7 @@ public class AccountService {   // 계좌 서비스
 
     @Transactional
     public List<AccountDto> getAccountsByUserId(Long userId) {   // userId에 해당하는 유저들 조회
-        AccountUser accountUser = accountUserRepository.findById(userId)
-                .orElseThrow(() -> new AccountException(USER_NOT_FOUND));
+        AccountUser accountUser = getAccountUser(userId);
 
         List<Account> accounts = accountRepository   // List로 사용자의 Account가 나옴
                 .findByAccountUser(accountUser);
@@ -111,5 +108,10 @@ public class AccountService {   // 계좌 서비스
         return accounts.stream()   // List<Account> -> List<AccountDto> 형변환
                 .map(AccountDto::fromEntity)   // 변환 완료
                 .collect(Collectors.toList());  // 리스트로 받아줌
+    }
+
+    private AccountUser getAccountUser(Long userId) {    // 중복되는 코드 정리한 메소드 (리팩토링)
+        return accountUserRepository.findById(userId)  // userId로 findById 해서 없으면 USER_NOT_FOUND 던짐, 있으면 accountUser에 저장
+                .orElseThrow(() -> new AccountException(USER_NOT_FOUND));
     }
 }

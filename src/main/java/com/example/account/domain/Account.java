@@ -17,12 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder // 객체 생성 (위의 NAC와 AAC 필요)
 @Entity  // 일종의 설정 클래스(자바 객체처럼 보이지만 사실은 설정)
-@EntityListeners(AuditingEntityListener.class)
-public class Account {   // Account 테이블 구조
-    @Id
-    @GeneratedValue
-    private Long id;   // Account 테이블에 id란 이름으로 PrimaryKey 지정
-
+public class Account extends BaseEntity{   // Account 테이블 구조
     @ManyToOne
     private AccountUser accountUser;   // Account 안에는 하위로 AccountUser가 있음 (AccountUser 한 명이 N개의 Account 가질수 있음
     private String accountNumber;
@@ -33,11 +28,6 @@ public class Account {   // Account 테이블 구조
 
     private LocalDateTime registeredAt;
     private LocalDateTime unRegisteredAt;
-
-    @CreatedDate  // 데이터를 자동으로 저장
-    private LocalDateTime createdAt;
-    @LastModifiedDate  // 데이터를 자동으로 바꿔줌 (저장)
-    private LocalDateTime updatedAt;
 
     public void useBalance(Long amount) {  // 계좌 잔액 사용
         if (amount > balance) {

@@ -45,8 +45,8 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void createAccountSuccess() {   // findById, findFirstByOrderByIdDesc, save에 대한 Mocking이 모두 되어있어야만 함.
         //given
         AccountUser user = AccountUser.builder()  // 사용될 변수 user
-                .id(12L)
                 .name("Pobi").build();
+        user.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));
         given(accountRepository.findFirstByOrderByIdDesc())
@@ -74,8 +74,8 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void createFirstAccountSuccess() {
         //given
         AccountUser user = AccountUser.builder()  // 사용될 변수 user
-                .id(15L)
                 .name("Pobi").build();
+        user.setId(15L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));
         given(accountRepository.findFirstByOrderByIdDesc())
@@ -117,8 +117,8 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void createAccount_maxAccountIs10() {
         //given
         AccountUser user = AccountUser.builder()  // 사용될 변수 user
-                .id(12L)
                 .name("Pobi").build();
+        user.setId(15L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));  // findById로 Account를 정상적으로 찾음
         given(accountRepository.countByAccountUser(any()))
@@ -135,8 +135,8 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void deleteAccountSuccess() {
         //given
         AccountUser user = AccountUser.builder()  // 사용될 변수 user
-                .id(12L)
                 .name("Pobi").build();
+        user.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user)); // 위에서 만든 Pobi를 가져옴
         given(accountRepository.findByAccountNumber(anyString()))   // 아무 문자열이나 왔을 때
@@ -176,8 +176,8 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void deleteAccount_AccountNotFound() {
         //given
         AccountUser user = AccountUser.builder()
-                .id(12L)
                 .name("Pobi").build();
+        user.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));
         given(accountRepository.findByAccountNumber(anyString()))
@@ -196,11 +196,11 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void deleteAccountFailed_userUnMatch() {
         //given
         AccountUser pobi = AccountUser.builder()  // 삭제하고싶은 계좌의 소유주
-                .id(12L)
                 .name("Pobi").build();
+        pobi.setId(12L);
         AccountUser harry = AccountUser.builder()  // 다른 계좌 소유주
-                .id(13L)
                 .name("Harry").build();
+        harry.setId(13L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(pobi)); // user를 조회할 때는 pobi
         given(accountRepository.findByAccountNumber(anyString()))
@@ -222,8 +222,8 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void deleteAccountFailed_balanceNotEmpty() {
         //given
         AccountUser pobi = AccountUser.builder()
-                .id(12L)
                 .name("Pobi").build();  // Pobi가 검색되고,
+        pobi.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(pobi));
         given(accountRepository.findByAccountNumber(anyString()))
@@ -245,8 +245,8 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void deleteAccountFailed_alreadyUnregistered() {
         //given
         AccountUser pobi = AccountUser.builder()
-                .id(12L)
                 .name("Pobi").build();  // Pobi가 검색되고,
+        pobi.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(pobi));
         given(accountRepository.findByAccountNumber(anyString()))
@@ -268,8 +268,8 @@ class AccountServiceTest {   // 하위에 AccountRepository 의존성을 갖고�
     void successGetAccountsByUserId() {
         //given
         AccountUser pobi = AccountUser.builder()
-                .id(12L)
                 .name("Pobi").build();  // Pobi가 검색되고,
+        pobi.setId(12L);
         List<Account> accounts = Arrays.asList(   // 가상계좌 3개를 만들어서 List에 넣음
                 Account.builder()
                         .accountUser(pobi)
